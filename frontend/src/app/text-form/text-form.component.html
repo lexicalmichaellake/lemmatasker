@@ -1,0 +1,74 @@
+<div style="text-align: center;">
+    <mat-form-field appearance="fill">
+      <mat-label>Enter your text</mat-label>
+      <input matInput [(ngModel)]="textInput">
+    </mat-form-field>
+    <button mat-raised-button color="primary" (click)="submitText()">Submit</button>
+  
+    <div>
+        <h2>1k Families</h2>
+        <table mat-table [dataSource]="dataSource1k" matSort class="mat-elevation-z8">
+      
+          <!-- Word Column -->
+          <ng-container matColumnDef="word">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="word"> Word </th>
+            <td mat-cell *matCellDef="let element"> {{element.word}} </td>
+          </ng-container>
+      
+          <!-- Part of Speech Column -->
+          <ng-container matColumnDef="pos">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="pos"> Part of Speech </th>
+            <td mat-cell *matCellDef="let element"> {{element.pos}} </td>
+          </ng-container>
+      
+          <!-- Header and Row Definitions -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <div>
+        <h2>2k Families</h2>
+        <table mat-table [dataSource]="dataSource2k" matSort class="mat-elevation-z8">
+      
+          <!-- Word Column -->
+          <ng-container matColumnDef="word">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="word"> Word </th>
+            <td mat-cell *matCellDef="let element"> {{element.word}} </td>
+          </ng-container>
+      
+          <!-- Part of Speech Column -->
+          <ng-container matColumnDef="pos">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="pos"> Part of Speech </th>
+            <td mat-cell *matCellDef="let element"> {{element.pos}} </td>
+          </ng-container>
+      
+          <!-- Header and Row Definitions -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <div>
+        <h2>3k Families</h2>
+        <table mat-table [dataSource]="dataSource3k" matSort class="mat-elevation-z8">
+      
+          <!-- Word Column -->
+          <ng-container matColumnDef="word">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="word"> Word </th>
+            <td mat-cell *matCellDef="let element"> {{element.word}} </td>
+          </ng-container>
+      
+          <!-- Part of Speech Column -->
+          <ng-container matColumnDef="pos">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header="pos"> Part of Speech </th>
+            <td mat-cell *matCellDef="let element"> {{element.pos}} </td>
+          </ng-container>
+      
+          <!-- Header and Row Definitions -->
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+  </div>
+  
