@@ -1,4 +1,6 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
+
 import pandas as pd
 import nltk
 from nltk.corpus import wordnet
@@ -34,24 +36,21 @@ def categorize_lemmas(lemmas):
         band = row['band']
         lemma = row['lemma']
         pos = row['pos']
-        pos_description = tag_descriptions.get(pos, "Unknown POS")  # Get the description, default to "Unknown POS"
-
-        # Construct the entry with POS description
-        entry = {"pos": pos, "description": pos_description}
 
         if band == 1000:
-            bands['1k_families'][lemma] = entry
+            bands['1k_families'][lemma] = pos
         elif band == 2000:
-            bands['2k_families'][lemma] = entry
+            bands['2k_families'][lemma] = pos
         else:
-            bands['3k+_families'][lemma] = entry
+            bands['3k+_families'][lemma] = pos
 
     return bands
 
 app = Flask(__name__)
+CORS(app)
 
-@app.route('/process', methods=['POST'])
-def process_text():
+@app.route('/lemmatize_text', methods=['POST'])
+def lemmatize_text():
     data = request.get_json()
     text = data['text']
     text = text.lower()
