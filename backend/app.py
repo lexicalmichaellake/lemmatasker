@@ -3,13 +3,8 @@ import pandas as pd
 import nltk
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
-
-# Ensure necessary NLTK resources are downloaded
-nltk.download('averaged_perceptron_tagger')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-
-freq_bands_frame = pd.read_csv("freq-bands.csv")
+from tag_descriptions import tag_descriptions
+freq_bands_frame = pd.read_csv("lemma.num.csv")
 
 
 def get_wordnet_pos(word, tag):
@@ -17,7 +12,7 @@ def get_wordnet_pos(word, tag):
         return wordnet.ADJ
     elif tag.startswith('V'):
         return wordnet.VERB
-    elif tag.startswith('N'):
+    elif any(tag.startswith(x) for x in ['N', 'P', 'T', 'D', 'I', 'M', 'C', 'U', 'W']):  # Include pronoun tags and others
         return wordnet.NOUN
     elif tag.startswith('R'):
         return wordnet.ADV
@@ -26,6 +21,7 @@ def get_wordnet_pos(word, tag):
 
 def categorize_lemmas(lemmas):
     df = pd.DataFrame(lemmas, columns=['lemma', 'pos'])
+    print(df)
     result = pd.merge(df, freq_bands_frame, how="left", on='lemma')
 
     bands = {
@@ -38,12 +34,17 @@ def categorize_lemmas(lemmas):
         band = row['band']
         lemma = row['lemma']
         pos = row['pos']
+        pos_description = tag_descriptions.get(pos, "Unknown POS")  # Get the description, default to "Unknown POS"
+
+        # Construct the entry with POS description
+        entry = {"pos": pos, "description": pos_description}
+
         if band == 1000:
-            bands['1k_families'][lemma] = pos
+            bands['1k_families'][lemma] = entry
         elif band == 2000:
-            bands['2k_families'][lemma] = pos
-        elif band >= 3000:
-            bands['3k+_families'][lemma] = pos
+            bands['2k_families'][lemma] = entry
+        else:
+            bands['3k+_families'][lemma] = entry
 
     return bands
 
@@ -53,11 +54,13 @@ app = Flask(__name__)
 def process_text():
     data = request.get_json()
     text = data['text']
+    text = text.lower()
     tokens = nltk.word_tokenize(text)
     tagged = nltk.pos_tag(tokens)
+    print(tokens)
 
     lemmatizer = WordNetLemmatizer()
-    lemmas = [(lemmatizer.lemmatize(word, get_wordnet_pos(word, tag)) + (' to' if tag.startswith('V') else ''), tag)
+    lemmas = [(lemmatizer.lemmatize(word, get_wordnet_pos(word, tag)), tag)
               for word, tag in tagged if get_wordnet_pos(word, tag)]
 
     categorized = categorize_lemmas(lemmas)
