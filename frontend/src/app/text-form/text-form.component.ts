@@ -9,9 +9,7 @@ interface FamilyData {
 }
 
 interface ApiResponse {
-  '1k_families': FamilyData;
-  '2k_families': FamilyData;
-  '3k+_families': FamilyData;
+  [key: string]: FamilyData;  // Adding index signature to allow dynamic access
 }
 
 @Component({
@@ -20,10 +18,16 @@ interface ApiResponse {
   styleUrls: ['./text-form.component.scss']
 })
 export class TextFormComponent {
+  textInput: string = '';
+  displayedColumns: string[] = ['word', 'pos'];  // Used in all tables
+  dataSources: Map<string, MatTableDataSource<any>> = new Map();
   // Initialize MatTableDataSource
-  dataSource1k = new MatTableDataSource();
-  dataSource2k = new MatTableDataSource();
-  dataSource3k = new MatTableDataSource();
+  dataSource1kContent = new MatTableDataSource();
+  dataSource1kFunction = new MatTableDataSource();
+  dataSource2kContent = new MatTableDataSource();
+  dataSource2kFunction = new MatTableDataSource();
+  dataSource3kContent = new MatTableDataSource();
+  dataSource3kFunction = new MatTableDataSource();
 
   @ViewChild(MatSort) sort!: MatSort;
 
@@ -47,32 +51,50 @@ export class TextFormComponent {
   
 
   ngAfterViewInit() {
-    this.dataSource1k.sort = this.sort;
-    this.dataSource2k.sort = this.sort;
-    this.dataSource3k.sort = this.sort;
-  
-    // Set initial sort state
-    this.sortData(this.dataSource1k);
-    this.sortData(this.dataSource2k);
-    this.sortData(this.dataSource3k);
+    this.dataSources.forEach(dataSource => {
+      dataSource.sort = this.sort;
+    });
   }
   
-  textInput: string = '';
   responseData1k: any[] = [];
   responseData2k: any[] = [];
   responseData3k: any[] = [];
-  displayedColumns: string[] = ['word', 'pos']; // This should match the columns defined in your HTML
+  responseDataContent: any[] = [];
+  responseDataFunction: any[] = [];
 
-  constructor(private http: HttpClient) { }
+  constructor(private http: HttpClient) {
+    // Initialize all data sources
+    ['1kContent', '1kFunction', '2kContent', '2kFunction', '3kContent', '3kFunction'].forEach(key => {
+      this.dataSources.set(key, new MatTableDataSource());
+    });
+  }
+
+  getDataSource(group: string, type: 'Content' | 'Function'): MatTableDataSource<any> {
+    return this.dataSources.get(group + type) || new MatTableDataSource();
+  }
 
   submitText(): void {
     const body = { text: this.textInput };
     this.http.post<ApiResponse>('http://127.0.0.1:5000/lemmatize_text', body).subscribe(response => {
-      if (response) {
-        this.dataSource1k.data = Object.entries(response['1k_families']).map(([word, pos]) => ({ word, pos }));
-        this.dataSource2k.data = Object.entries(response['2k_families']).map(([word, pos]) => ({ word, pos }));
-        this.dataSource3k.data = Object.entries(response['3k+_families']).map(([word, pos]) => ({ word, pos }));
-      }
+      ['1k', '2k', '3k'].forEach(group => {
+        const contentWords: any[] = [];
+        const functionWords: any[] = [];
+
+        Object.entries(response[group + '_families']).forEach(([word, pos]) => {
+          // Assert that pos is a string
+          const posStr = pos as string;
+  
+          const entry = { word, pos: posStr };
+          if (['N', 'V', 'J'].some(prefix => posStr.startsWith(prefix))) {
+            contentWords.push(entry);
+          } else {
+            functionWords.push(entry);
+          }
+        });
+
+        this.dataSources.get(group + 'Content')!.data = contentWords;
+        this.dataSources.get(group + 'Function')!.data = functionWords;
+      });
     });
   }
-} 
+}

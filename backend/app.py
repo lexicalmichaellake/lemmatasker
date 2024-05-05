@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 import pandas as pd
 import nltk
+import eng_to_ipa as ipa
 from nltk.corpus import wordnet
 from nltk.stem import WordNetLemmatizer
 from tag_descriptions import tag_descriptions
@@ -29,7 +30,7 @@ def categorize_lemmas(lemmas):
     bands = {
         '1k_families': {},
         '2k_families': {},
-        '3k+_families': {}
+        '3k_families': {}
     }
     
     for index, row in result.iterrows():
@@ -42,7 +43,7 @@ def categorize_lemmas(lemmas):
         elif band == 2000:
             bands['2k_families'][lemma] = pos
         else:
-            bands['3k+_families'][lemma] = pos
+            bands['3k_families'][lemma] = pos
 
     return bands
 
