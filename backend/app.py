@@ -24,7 +24,6 @@ def get_wordnet_pos(word, tag):
 
 def categorize_lemmas(lemmas):
     df = pd.DataFrame(lemmas, columns=['lemma', 'pos'])
-    print(df)
     result = pd.merge(df, freq_bands_frame, how="left", on='lemma')
 
     bands = {
@@ -37,13 +36,21 @@ def categorize_lemmas(lemmas):
         band = row['band']
         lemma = row['lemma']
         pos = row['pos']
+        ipa_transcription = ipa.convert(lemma) if ipa.convert(lemma) else "N/A"
 
+        entry = {"lemma": lemma, "pos": pos, "ipa": ipa_transcription}
+
+        # Use a dictionary to prevent duplicates based on lemma
         if band == 1000:
-            bands['1k_families'][lemma] = pos
+            bands['1k_families'][lemma] = entry
         elif band == 2000:
-            bands['2k_families'][lemma] = pos
+            bands['2k_families'][lemma] = entry
         else:
-            bands['3k_families'][lemma] = pos
+            bands['3k_families'][lemma] = entry
+
+    # Convert dictionaries back to lists for JSON serialization
+    for key in bands:
+        bands[key] = list(bands[key].values())
 
     return bands
 
